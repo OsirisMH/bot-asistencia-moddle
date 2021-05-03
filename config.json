@@ -1,50 +1,50 @@
 {
-    "user":{
+    "user": {
         "username": "o.meza18",
-        "password": "Solicitud.G55",
+        "password": "gAAAAABgj_BZS3m1ubyprsQR8CqZPbWP8WiVNlzSHtzHOuq8S1FzJ41WZxksVvV8hRQwTJTq0CBCWZRkbG_O1NjNM-2BvexQbg==",
         "email": "o.meza18@info.uas.edu.mx"
     },
     "executableWebDriverPath": "C:\\Users\\peluc\\Downloads\\chromedriver.exe",
     "homePageUrl": "https://aula2.uas.edu.mx/centro/info/login/index.php",
     "logoutPageUrl": "https://aula2.uas.edu.mx/centro/info/login/logout.php?sesskey=XVfjJDDaSW",
-    "materias":{
+    "materias": {
         "1": {
-            "materia": "Redacción de textos en inglés",
+            "materia": "Redacci\u00c3\u00b3n de textos en ingl\u00c3\u00a9s",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1",
             "id_status": "id_status_1747",
             "horario": "15:00:00",
             "asistencia": false
         },
         "2": {
-            "materia": "Programación de Servidores Web",
+            "materia": "Programaci\u00c3\u00b3n de Servidores Web",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1",
             "id_status": "id_status_1743",
             "horario": "16:00:00",
             "asistencia": false
         },
         "3": {
-            "materia": "Seminario de Creatividad e Innovación",
+            "materia": "Seminario de Creatividad e Innovaci\u00c3\u00b3n",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15809&view=1",
             "id_status": "id_status_1759",
             "horario": "17:00:00",
             "asistencia": false
         },
-        "4":{
-            "materia": "Adminstración de Redes",
+        "4": {
+            "materia": "Adminstraci\u00c3\u00b3n de Redes",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=19387&view=1",
             "id_status": "id_status_1739",
             "horario": "18:00:00",
             "asistencia": false
         },
-        "5":{
-            "materia": "Sistemas de Información",
+        "5": {
+            "materia": "Sistemas de Informaci\u00c3\u00b3n",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15850&view=1",
             "id_status": "id_status_1763",
             "horario": "19:00:00",
             "asistencia": false
         }
     },
-    "asistencia":{
+    "asistencia": {
         "claseActual": null,
         "asistenciasTomadas": 0
     },
