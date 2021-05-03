@@ -11,6 +11,7 @@ from time import sleep
 from datetime import datetime, timedelta
 from threading import Thread
 import sys, os
+import balloontip
 
 EXECUTABLE_PATH = 'C:\\Users\\peluc\\Downloads\\chromedriver.exe'
 
@@ -345,12 +346,17 @@ def menu():
 
         print("", flush=True)
 
+# if __name__ == "__main__":
+#     try: 
+#         menu()
+#         if t != False:
+#             t.stop() # Detenemos el hilo
+#     except KeyboardInterrupt as e:
+#         if t != False:
+#             t.stop() # Detenemos el hilo
+#         sys.exit(e)
+
 if __name__ == "__main__":
-    try: 
-        menu()
-        if t != False:
-            t.stop() # Detenemos el hilo
-    except KeyboardInterrupt as e:
-        if t != False:
-            t.stop() # Detenemos el hilo
-        sys.exit(e)
+    
+    balloontip.balloon_tip("Ss","ss")
+    sleep(1000)
