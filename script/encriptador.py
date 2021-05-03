@@ -14,7 +14,7 @@ def cargar_clave():
     return open(path, "rb").read()
 
 def cifrar_contra(contra):
-    json_path = os.path.abspath("../config.json")
+    json_path = os.path.abspath("../data.json")
 
     genera_clave()
     clave = cargar_clave()
@@ -33,9 +33,11 @@ def cifrar_contra(contra):
     json.dump(json_object, a_file)
     a_file.close()
 
-def descifar_contra(clave):
-    json_path = os.path.abspath("../config.json")
+def descifar_contra():
+    clave = cargar_clave()
 
+    json_path = os.path.abspath("../data.json")
+    
     f = Fernet(clave)
 
     a_file = open(json_path, "r")
@@ -47,5 +49,3 @@ def descifar_contra(clave):
     contra = contra.decode('utf-8')
 
     return contra
-
-print(descifar_contra(cargar_clave()))

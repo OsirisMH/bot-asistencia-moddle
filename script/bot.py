@@ -1,5 +1,7 @@
-import plyer.platforms.win.notification
-from plyer import notification
+import sys, os
+import balloontip
+import encriptador
+import json
 import undetected_chromedriver as uc
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
@@ -10,71 +12,40 @@ from selenium.webdriver.chrome.options import Options
 from time import sleep
 from datetime import datetime, timedelta
 from threading import Thread
-import sys, os
-import balloontip
 
-EXECUTABLE_PATH = 'C:\\Users\\peluc\\Downloads\\chromedriver.exe'
 
-USERNAME = 'o.meza18'
-PASSWORD = 'Solicitud.G55'
+# Declaración de variables
+json_path = "../data.json"
 
-MATERIAS = {
-    'url' : [
-        'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1', # Redacción de Textos en Ingles
-        'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15632&view=1', # Programación de servidores web
-        'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15809&view=1', # Seminarios de creatividad
-        'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=19387&view=1', # Administración de redes
-        'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15850&view=1'  # Sistemas de información
-    ],
-    'id_status': [
-        'id_status_1747',
-        'id_status_1743',
-        'id_status_1759',
-        'id_status_1739', # ¡¡¡ CAMBIAR STATUS !!!
-        'id_status_1763'
-    ],
-    'hora':[
-        datetime.strptime('15:20:00', '%H:%M:%S'),
-        datetime.strptime('16:20:00', '%H:%M:%S'),
-        datetime.strptime('17:20:00', '%H:%M:%S'),
-        datetime.strptime('18:20:00', '%H:%M:%S'),
-        datetime.strptime('19:20:00', '%H:%M:%S')
-    ],
-    'asistencia' : [
-        False,
-        False,
-        False,
-        False,
-        False
-    ]
-}
-
-HOMEPAGEURL = 'https://aula2.uas.edu.mx/centro/info/login/index.php'
-LOGOUTURL = 'https://aula2.uas.edu.mx/centro/info/login/logout.php?sesskey=XVfjJDDaSW'
-
+# Configuración del webdriver [Chrome]
 chrome_options = webdriver.ChromeOptions()
-chrome_options.headless = True
-
-# Este será el index del array MATERIAS
-materiaActual = 999
+chrome_options.headless = False
 
 # Este será el nuevo hilo
 t = False
 
+# Leer la configuración
+data_file = open(json_path, "r", encoding='utf8')
+data = json.load(data_file)
+data_file.close()
+
+def actualizar_datos():
+    data_file = open(json_path, "w", encoding='utf8')
+    json.dump(data, data_file, ensure_ascii=False)
+    data_file.close()
+
 def asignar_hora():
-    global materiaActual
-    claseActualIndex = 999
-
+    hora_actual = datetime.now().time()
+    
     # Obtener la materia actual
-    for i in MATERIAS['hora']:   
+    for i in data['materias']:   
         # Evaluar si se ha asignado alguna hora / materia
-        if datetime.now().hour == i.hour:
-            claseActualIndex = MATERIAS['hora'].index(i)
+        if hora_actual == datetime.strptime(data['materias'][i]['horario'], '%H:%M:%S').time():
+            data['asistencia']['claseActual'] = str(i)
+            data['asistencia']['siguienteClase'] = str(int(i) + 1)
+            break
 
-    if claseActualIndex == 999:
-        materiaActual = 999
-    else:
-        materiaActual = claseActualIndex
+    actualizar_datos()
 
 class Temporizador(Thread):
     def __init__(self, hora, delay, funcion):
@@ -90,8 +61,6 @@ class Temporizador(Thread):
 
     def run(self):
         # Definición de constantes y variables
-        ultimaClase = MATERIAS['hora'][len(MATERIAS['hora']) - 1]
-
         aux = datetime.strptime(self.hora, '%H:%M:%S')
         hora = datetime.now()
         hora = hora.replace(hour = aux.hour, minute=aux.minute, second=aux.second, microsecond = 0)
@@ -105,24 +74,19 @@ class Temporizador(Thread):
                 self.funcion()
                 print('Ejecución programada ejecutada el {0} a las {1}'.format(hora.date(),  hora.time()), flush=True)
 
-                if datetime.now().time() == ultimaClase.time(): # Si ya es la ultima hora (No hay mas clases)
+                if data['asistencia']['claseActual'] == '5': # Si ya es la ultima hora (No hay mas clases)
                     self.stop()
                 else:
                     hora += timedelta(hours=1)
+                    hora = hora.replace(hour = hora.hour, minute=15, second=0, microsecond = 0)
                     print('Próxima ejecución programada el {0} a las {1}'.format(hora.date(),  hora.time()), flush=True)
 
             sleep(self.delay)
         else:
             print('Ejecución automática finalizada', flush=True)
-            asistencias = 0
-            if datetime.now().time() == ultimaClase.time():
-                # Obtener el numero de asistencias
-                for i in MATERIAS['asistencia']:   
-                    if i:
-                        asistencias = asistencias + 1
-
-                print('Asistencias tomadas: {} / {}'.format(asistencias, len(MATERIAS['asistencia'])), flush=True)
-                os._exit(1)
+            asistencias = data['asistencia']['asistenciasTomadas']
+            print('Asistencias tomadas: {} / {}'.format(asistencias, '5'), flush=True)
+            # os._exit(1)
   
 def corregir_ruta(path):
     if getattr(sys, "frozen", False):
@@ -133,33 +97,68 @@ def corregir_ruta(path):
     return resolved_path
 
 def verificar_horario():
-    global materiaActual
-    primeraHora = MATERIAS['hora'][0]
 
-    # Asignar hora de clase
-    asignar_hora()
+    clase = 0
+    primera_clase = datetime.strptime(data['materias']['1']['horario'], '%H:%M:%S').time()
+    ultima_clase = datetime.strptime(data['materias']['5']['horario'], '%H:%M:%S').time()
+    hora_test = datetime.now()
+    delay = datetime.strptime(data['delay'], '%H:%M:%S').time().minute
 
-    # Evaluar si se asigno horario de clase
-    if materiaActual != 999:
-         # Configurar la hora con la fecha de hoy
-        aux = MATERIAS['hora'][materiaActual]
-        claseActual = datetime.now()
-        claseActual = claseActual.replace(hour = aux.hour, minute=aux.minute, second=aux.second, microsecond = 0)
-
-        claseSig = claseActual
-        claseSig += timedelta(hours=1)
-        claseSig -= timedelta(minutes=20)
-
-        # Evaluar si es posible tomar asistencia
-        if datetime.now() > claseActual: # Si el [delay] ya ha pasado
-            return True
-        else:
-            print("###  Aún no es posible tomar la asistencia  ###", flush=True)
-            return False
-
+    # hora_test = datetime.strptime('19:57:00', '%H:%M:%S') # ELIMINAR DESPUES DE PRUEBAS
+   
+    if hora_test.hour < primera_clase.hour:
+        # print("DESDE CERO, ANTES DE CLASES")
+        t = Temporizador("15:15:00", 1, main)
+        t.start()
     else:
-        print("###  Fuera de horario de clase  ###", flush=True)
-        return False
+        ultima_clase = ultima_clase.replace(hour = 20, minute=0, second=0, microsecond = 0) # Reajustar horario de salida
+        if hora_test.hour < ultima_clase.hour:
+            for i in data['materias']:
+                if hora_test.hour == datetime.strptime(data['materias'][i]['horario'], '%H:%M:%S').time().hour:
+                    data['asistencia']['claseActual'] = i
+                    clase = i
+                    if i != "5":
+                        data['asistencia']['siguienteClase'] = str(int(i) + 1)
+                    else:
+                        data['asistencia']['siguienteClase'] = None
+                    actualizar_datos()
+                    break
+        
+
+            if hora_test.minute < delay:
+                # Programación habitual
+                horario = datetime.strptime(data['materias'][clase]['horario'], '%H:%M:%S')
+                horario += timedelta(minutes=15)
+                t = Temporizador(horario.time(), 1, main)
+                t.start()
+                # print("CLASES INICIADAS ANTES DEL DELAY")
+                # print(horario.time())
+            else:
+                if hora_test.minute < datetime.strptime('00:57:00', '%H:%M:%S').time().minute:
+                    # Programas con minutos acutal + 2
+                    horario = datetime.strptime(data['materias'][clase]['horario'], '%H:%M:%S')
+                    horario += timedelta(minutes=int(hora_test.minute) + 2)
+                    t = Temporizador(horario.time(), 1, main)
+                    t.start()
+                    # print("CLASES INICIADAS DESPUES DEL DELAY")
+                    # print(horario.time())
+                else:
+                    # print("CLASES INICIADAS TOMA INMEDIATA DEBIDO AL LIMITE")
+                    # Tomar asistencia inmediatamente
+                    if clase != '5':
+                        horario = datetime.strptime(data['materias'][str(int(clase) + 1)]['horario'], '%H:%M:%S')
+                        horario += timedelta(minutes=15)    
+                        t = Temporizador(horario.time(), 1, main)
+                        t.start() 
+                        # print(horario.time())
+                    else:
+                        print('Ejecución automática finalizada', flush=True)
+                        asistencias = data['asistencia']['asistenciasTomadas']
+                        print('Asistencias tomadas: {} / {}'.format(asistencias, '5'), flush=True)
+        else:
+            print("Las clases ya han concluido")
+
+
 
 def verificar_existencia(driver, selector):
     try:
@@ -170,18 +169,18 @@ def verificar_existencia(driver, selector):
 
 def iniciar_sesion(driver):
     # Redireccionar a la página principal de Aula Virtual
-    driver.get(HOMEPAGEURL)
+    driver.get(data['homePageUrl'])
 
     # Introducir los datos del usuario
     inputUsername = WebDriverWait(driver, 5).until(
         EC.presence_of_element_located((By.NAME, "username"))
     )
-    inputUsername.send_keys(USERNAME)
+    inputUsername.send_keys(data['user']['username'])
 
     inputPass = WebDriverWait(driver, 5).until(
         EC.presence_of_element_located((By.NAME, "password"))
     )
-    inputPass.send_keys(PASSWORD)
+    inputPass.send_keys(encriptador.descifar_contra())
 
     loginButton = WebDriverWait(driver, 5).until(
         EC.element_to_be_clickable((By.ID, "loginbtn"))
@@ -193,35 +192,20 @@ def iniciar_sesion(driver):
 
     print("#####     SESIÓN INICIADA     #####", flush=True)
 
-def cerrar_Sesion(driver):
-    # Redirección al log out
-    driver.get(LOGOUTURL)
-
-    # Desencadenar click en el botón Cerrar
-    driver.find_element_by_css_selector('button[type="submit"]').click()
-    
-    # Aviso en consola
-    print("#####     SESIÓN CERRADA     #####", flush=True)
-
-    # Cerrar procesos de selenium
-    driver.quit()
-
 def tomar_asistencia(driver):
     # Inicialización de variables
-    global materiaActual
-    nombreMateria = ''
+    # clase_actual = data['asistencia']['claseActual']
+    clase_actual = str("1")
     mensaje = ''
 
     # Acceder a la lista de asistencia
-    driver.get(MATERIAS['url'][materiaActual]);
+    driver.get(data['materias'][clase_actual]['url'])
     sleep(1)
 
     # Obtener el nombre de la materia
-    nombreMateria = WebDriverWait(driver, 5).until(
-        EC.presence_of_element_located((By.TAG_NAME, "h1"))
-    )
-    nombreMateria = nombreMateria.text
+    nombreMateria = data['materias'][clase_actual]['nombre']
     
+    # ALGO...
     if verificar_existencia(driver, "#region-main > div > table.generaltable.attwidth.boxaligncenter > tbody > tr > td.statuscol.cell.c2.lastcol > a"):
         # Selección asistencia
         elemento = WebDriverWait(driver, 5).until(
@@ -232,7 +216,7 @@ def tomar_asistencia(driver):
 
         # Seleccionar presente
         elemento = WebDriverWait(driver, 5).until(
-            EC.element_to_be_clickable((By.ID, MATERIAS['id_status'][materiaActual]))
+            EC.element_to_be_clickable((By.ID, data['materias'][clase_actual]['id_status']))
         )
         elemento.click()
         sleep(1)
@@ -245,8 +229,10 @@ def tomar_asistencia(driver):
         sleep(1)
 
         # Guardar el registro de asistencia
-        MATERIAS['asistencia'][materiaActual] = True
-    
+        data['materias'][clase_actual]['asistencia'] = True
+        data['asistencia']['asistenciasTomadas'] += 1
+        actualizar_datos()
+
         # Enviar el aviso de la toma de asistencia
         mensaje = "Asistencia tomada - " + nombreMateria
         print(mensaje, flush=True)
@@ -254,12 +240,21 @@ def tomar_asistencia(driver):
         mensaje = "No se ha podido tomar asistencia..."
         print("{}".format(mensaje), flush=True)
 
-    notification.notify(title = "## Aviso ##",
-                        message = mensaje,
-                        app_icon = corregir_ruta("icon.ico"),
-                        timeout = 10,
-                        toast = False)
+    balloontip.balloon_tip("### AVISO ###", mensaje)
     sleep(1)
+
+def cerrar_Sesion(driver):
+    # Redirección al log out
+    driver.get(data['logoutPageUrl'])
+
+    # Desencadenar click en el botón Cerrar
+    driver.find_element_by_css_selector('button[type="submit"]').click()
+    
+    # Aviso en consola
+    print("#####     SESIÓN CERRADA     #####", flush=True)
+
+    # Cerrar procesos de selenium
+    driver.quit()
 
 def inicializar_hilo():
     # Declaración de variables
@@ -357,6 +352,12 @@ def menu():
 #         sys.exit(e)
 
 if __name__ == "__main__":
+    # driver = uc.Chrome(options = chrome_options)
+    # iniciar_sesion(driver)
+    # sleep(1)
+    # tomar_asistencia(driver)
+    # sleep(1)
+    # cerrar_Sesion(driver)
+    verificar_horario()
+
     
-    balloontip.balloon_tip("Ss","ss")
-    sleep(1000)
