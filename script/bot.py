@@ -22,7 +22,7 @@ chrome_options = webdriver.ChromeOptions()
 chrome_options.headless = False
 
 # Este será el nuevo hilo
-t = False
+t = None
 
 # Leer la configuración
 data_file = open(json_path, "r", encoding='utf8')
@@ -34,7 +34,7 @@ def actualizar_datos():
     json.dump(data, data_file, ensure_ascii=False)
     data_file.close()
 
-def asignar_hora():
+def asignar_hora(): #Obsoleta
     hora_actual = datetime.now().time()
     
     # Obtener la materia actual
@@ -84,8 +84,9 @@ class Temporizador(Thread):
             sleep(self.delay)
         else:
             print('Ejecución automática finalizada', flush=True)
-            asistencias = data['asistencia']['asistenciasTomadas']
-            print('Asistencias tomadas: {} / {}'.format(asistencias, '5'), flush=True)
+            if data['asistencia']['claseActual'] == '5':
+                asistencias = data['asistencia']['asistenciasTomadas']
+                print('Asistencias tomadas: {} / {}'.format(asistencias, '5'), flush=True)
             # os._exit(1)
   
 def corregir_ruta(path):
@@ -97,7 +98,7 @@ def corregir_ruta(path):
     return resolved_path
 
 def verificar_horario():
-
+    global t
     clase = 0
     primera_clase = datetime.strptime(data['materias']['1']['horario'], '%H:%M:%S').time()
     ultima_clase = datetime.strptime(data['materias']['5']['horario'], '%H:%M:%S').time()
@@ -108,6 +109,8 @@ def verificar_horario():
    
     if hora_test.hour < primera_clase.hour:
         # print("DESDE CERO, ANTES DE CLASES")
+        data['asistencia']['claseActual'] = "1"
+        actualizar_datos()
         t = Temporizador("15:15:00", 1, main)
         t.start()
     else:
@@ -158,8 +161,6 @@ def verificar_horario():
         else:
             print("Las clases ya han concluido")
 
-
-
 def verificar_existencia(driver, selector):
     try:
         driver.find_element_by_css_selector(selector)
@@ -194,8 +195,8 @@ def iniciar_sesion(driver):
 
 def tomar_asistencia(driver):
     # Inicialización de variables
-    # clase_actual = data['asistencia']['claseActual']
-    clase_actual = str("1")
+    clase_actual = data['asistencia']['claseActual']
+    # clase_actual = str("1")
     mensaje = ''
 
     # Acceder a la lista de asistencia
@@ -256,7 +257,7 @@ def cerrar_Sesion(driver):
     # Cerrar procesos de selenium
     driver.quit()
 
-def inicializar_hilo():
+def inicializar_hilo(): #Obsoleta
     # Declaración de variables
     global t # Declaramos la variable como global
 
@@ -309,21 +310,21 @@ def menu():
 
     while opcion != 4:
         if opcion == 1: # Iniciar automatización
-            inicializar_hilo()
+            verificar_horario()
             sleep(1)
 
         if opcion == 2: # Detener automatización
-            if t != False:
+            if t is not None:
                 t.stop() # Detenemos el hilo
-                sleep(2)
+                sleep(1)
             else:
                 print("La asistencia automática esta DESACTIVADA", flush=True)
                 sleep(1)
+
+        if opcion == 3:
+            print("En desarrollo....", flush=True)
+            sleep(1)
         
-        if opcion == 3: # Tomar asistencia manualmente
-            if verificar_horario():
-                main()
-            sleep(2)
 
         print("", flush=True)
         print("\t---  Menu  ---")
@@ -341,23 +342,30 @@ def menu():
 
         print("", flush=True)
 
-# if __name__ == "__main__":
-#     try: 
-#         menu()
-#         if t != False:
-#             t.stop() # Detenemos el hilo
-#     except KeyboardInterrupt as e:
-#         if t != False:
-#             t.stop() # Detenemos el hilo
-#         sys.exit(e)
+def restablecer_valores():
+    fecha_actual = datetime.now()
+    fecha_actual = fecha_actual.strftime("%Y-%m-%d %H:%M:%S")
+    data['fecha'] = fecha_actual
+    data['asistencia']['claseActual'] = None
+    data['asistencia']['siguienteClase'] = None
+    data['asistencia']['asistenciasTomadas'] = 0
+    for i in data['materias']:
+        data['materias'][i]['asistencia'] = False
+    actualizar_datos()
+
 
 if __name__ == "__main__":
-    # driver = uc.Chrome(options = chrome_options)
-    # iniciar_sesion(driver)
-    # sleep(1)
-    # tomar_asistencia(driver)
-    # sleep(1)
-    # cerrar_Sesion(driver)
-    verificar_horario()
+    try: 
+        menu()
+        if t is not None:
+            t.stop() # Detenemos el hilo
+            
+        if datetime.now().date() > datetime.strptime(data['fecha'], '%Y-%m-%d %H:%M:%S').date():
+            restablecer_valores()
+
+    except KeyboardInterrupt as e:
+        if t is not None:   
+            t.stop() # Detenemos el hilo
+        sys.exit(e)
 
     
