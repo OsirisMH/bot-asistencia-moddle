@@ -1,0 +1,52 @@
+{
+    "user":{
+        "username": "o.meza18",
+        "password": "Solicitud.G55",
+        "email": "o.meza18@info.uas.edu.mx"
+    },
+    "executableWebDriverPath": "C:\\Users\\peluc\\Downloads\\chromedriver.exe",
+    "homePageUrl": "https://aula2.uas.edu.mx/centro/info/login/index.php",
+    "logoutPageUrl": "https://aula2.uas.edu.mx/centro/info/login/logout.php?sesskey=XVfjJDDaSW",
+    "materias":{
+        "1": {
+            "materia": "Redacción de textos en inglés",
+            "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1",
+            "id_status": "id_status_1747",
+            "horario": "15:00:00",
+            "asistencia": false
+        },
+        "2": {
+            "materia": "Programación de Servidores Web",
+            "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1",
+            "id_status": "id_status_1743",
+            "horario": "16:00:00",
+            "asistencia": false
+        },
+        "3": {
+            "materia": "Seminario de Creatividad e Innovación",
+            "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15809&view=1",
+            "id_status": "id_status_1759",
+            "horario": "17:00:00",
+            "asistencia": false
+        },
+        "4":{
+            "materia": "Adminstración de Redes",
+            "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=19387&view=1",
+            "id_status": "id_status_1739",
+            "horario": "18:00:00",
+            "asistencia": false
+        },
+        "5":{
+            "materia": "Sistemas de Información",
+            "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15850&view=1",
+            "id_status": "id_status_1763",
+            "horario": "19:00:00",
+            "asistencia": false
+        }
+    },
+    "asistencia":{
+        "claseActual": null,
+        "asistenciasTomadas": 0
+    },
+    "delay": 15
+}

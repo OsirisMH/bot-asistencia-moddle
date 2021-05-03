@@ -22,14 +22,14 @@ MATERIAS = {
         'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1', # Redacción de Textos en Ingles
         'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15632&view=1', # Programación de servidores web
         'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15809&view=1', # Seminarios de creatividad
-        'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15591&view=1', # Administración de redes
+        'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=19387&view=1', # Administración de redes
         'https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15850&view=1'  # Sistemas de información
     ],
     'id_status': [
         'id_status_1747',
         'id_status_1743',
         'id_status_1759',
-        'id_status_1739',
+        'id_status_1739', # ¡¡¡ CAMBIAR STATUS !!!
         'id_status_1763'
     ],
     'hora':[
@@ -253,7 +253,11 @@ def tomar_asistencia(driver):
         mensaje = "No se ha podido tomar asistencia..."
         print("{}".format(mensaje), flush=True)
 
-    notification.notify("## Aviso ##", mensaje, app_icon = corregir_ruta("icon.ico"))
+    notification.notify(title = "## Aviso ##",
+                        message = mensaje,
+                        app_icon = corregir_ruta("icon.ico"),
+                        timeout = 10,
+                        toast = False)
     sleep(1)
 
 def inicializar_hilo():
