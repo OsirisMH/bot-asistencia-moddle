@@ -4,51 +4,63 @@
         "password": "gAAAAABgj_BZS3m1ubyprsQR8CqZPbWP8WiVNlzSHtzHOuq8S1FzJ41WZxksVvV8hRQwTJTq0CBCWZRkbG_O1NjNM-2BvexQbg==",
         "email": "o.meza18@info.uas.edu.mx"
     },
-    "executableWebDriverPath": "C:\\Users\\peluc\\Downloads\\chromedriver.exe",
-    "homePageUrl": "https://aula2.uas.edu.mx/centro/info/login/index.php",
-    "logoutPageUrl": "https://aula2.uas.edu.mx/centro/info/login/logout.php?sesskey=XVfjJDDaSW",
-    "materias": {
+    "executable_web_driver_path": "C:\\Users\\peluc\\Downloads\\chromedriver.exe",
+    "homepage_url": "https://aula2.uas.edu.mx/centro/info/login/index.php",
+    "logout_url": "https://aula2.uas.edu.mx/centro/info/login/logout.php?sesskey=XVfjJDDaSW",
+    "classes": {
         "1": {
-            "nombre": "Redacción de textos en inglés",
+            "name": "Redacción de textos en inglés",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1",
             "id_status": "id_status_1747",
-            "horario": "15:00:00",
-            "asistencia": false
+            "schedule": "15:20",
+            "is_taken": false
         },
         "2": {
-            "nombre": "Programación de Servidores Web",
-            "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15673&view=1",
+            "name": "Programación de Servidores Web",
+            "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15632&view=1",
             "id_status": "id_status_1743",
-            "horario": "16:00:00",
-            "asistencia": false
+            "schedule": "16:20",
+            "is_taken": false
         },
         "3": {
-            "nombre": "Seminario de Creatividad e InnovaciÃ³n",
+            "name": "Seminario de Creatividad e Innovación",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15809&view=1",
             "id_status": "id_status_1759",
-            "horario": "17:00:00",
-            "asistencia": false
+            "schedule": "17:20",
+            "is_taken": false
         },
         "4": {
-            "nombre": "Adminstración de Redes",
+            "name": "Adminstración de Redes",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=19387&view=1",
-            "id_status": "id_status_1739",
-            "horario": "18:00:00",
-            "asistencia": false
+            "id_status": "id_status_1855",
+            "schedule": "18:20",
+            "is_taken": false
         },
         "5": {
-            "nombre": "Sistemas de Información",
+            "name": "Sistemas de Información",
             "url": "https://aula2.uas.edu.mx/centro/info/mod/attendance/view.php?id=15850&view=1",
             "id_status": "id_status_1763",
-            "horario": "19:00:00",
-            "asistencia": false
+            "schedule": "19:20",
+            "is_taken": false
         }
     },
-    "asistencia": {
-        "claseActual": null,
-        "siguienteClase": null,
-        "asistenciasTomadas": 0
+    "current_attendance": {
+        "current_class": {
+            "name": null,
+            "url": null,
+            "id_status": null,
+            "schedule": null,
+            "is_taken": null
+        },
+        "next_class": {
+            "name": null,
+            "url": null,
+            "id_status": null,
+            "schedule": null,
+            "is_taken": null
+        },
+        "attendances_number": 0
     },
-    "delay": "00:15:00",
-    "fecha": "2021-05-03 13:51:45"
+    "delay": "20",
+    "date": "2021-05-07 14:47:26"
 }
