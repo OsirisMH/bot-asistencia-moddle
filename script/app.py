@@ -53,8 +53,10 @@ class AttendanceBot():
     def __init__(self):
         self.data = None
         self.json_path = '../data.json'
+        self.current_class = None
         self.schedule = None
         self.timer = None
+        self.driver = None
 
     def get_data(self):
         data_file = open(self.json_path, "r", encoding='utf-8')
@@ -79,9 +81,112 @@ class AttendanceBot():
         else:
             return None
 
-    def take_attendance(self):
-        print("#### FUNCIÓN EJECUTADA ####")
+    def element_exists(self, selector):
+        try:
+            self.driver.find_element_by_css_selector(selector)
+        except NoSuchElementException:
+            return False
+        return True
 
+    def init_driver(self):
+        # Configuración del webdriver [Chrome]
+        chrome_options = webdriver.ChromeOptions()
+        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        chrome_options.headless = True
+        self.driver = uc.Chrome(options = chrome_options)
+
+    def login(self):
+        # Redireccionar a la página principal de Aula Virtual
+        self.driver.get(self.data['homepage_url'])
+
+        # Introducir los datos del usuario
+        inputUsername = WebDriverWait(self.driver, 5).until(
+            EC.presence_of_element_located((By.NAME, "username"))
+        )
+        inputUsername.send_keys(self.data['user']['username'])
+
+        inputPass = WebDriverWait(self.driver, 5).until(
+            EC.presence_of_element_located((By.NAME, "password"))
+        )
+        inputPass.send_keys(encriptador.descifar_contra())
+
+        loginButton = WebDriverWait(self.driver, 5).until(
+            EC.element_to_be_clickable((By.ID, "loginbtn"))
+        )
+
+        # Desencadenar un clic en iniciar sesión
+        loginButton.click()
+        sleep(1)
+
+        print("#####     SESIÓN INICIADA     #####", flush=True)
+
+    def take_attendance(self):
+        # Inicialización de variables
+        message = ''
+
+        # Acceder a la lista de asistencia
+        self.driver.get(self.data['classes'][self.current_class]['url'])
+        sleep(1)
+
+        # Obtener el nombre de la materia
+        class_name = self.data['classes'][self.current_class]['name']
+        
+        # ALGO...
+        if self.element_exists("#region-main > div > table.generaltable.attwidth.boxaligncenter > tbody > tr > td.statuscol.cell.c2.lastcol > a"):
+            # Selección asistencia
+            element = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.CSS_SELECTOR, "#region-main > div > table.generaltable.attwidth.boxaligncenter > tbody > tr > td.statuscol.cell.c2.lastcol > a"))
+            )
+            element.click()
+            sleep(1)
+
+            # Seleccionar presente
+            element = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.ID, self.data['classes'][self.current_class]['id_status']))
+            )
+            element.click()
+            sleep(1)
+
+            # Guardar cambios
+            element = WebDriverWait(self.driver, 5).until(
+                EC.element_to_be_clickable((By.ID, 'id_submitbutton'))
+            )
+            element.click()
+            sleep(1)
+
+            # Guardar el registro de asistencia
+            self.data['current_attendance']['attendances_number'] += 1
+            self.current_class = str(int(self.current_class) + 1)
+
+            # Enviar el aviso de la toma de asistencia
+            message = "Asistencia tomada - " + class_name
+            print(message, flush=True)
+        else:
+            message = "No se ha podido tomar asistencia..."
+            print("{}".format(message), flush=True)
+
+        balloontip.balloon_tip("### AVISO ###", message)
+
+    def logout(self):
+        # Redirección al log out
+        self.driver.get(self.data['logout_url'])
+
+        # Desencadenar click en el botón Cerrar
+        self.driver.find_element_by_css_selector('button[type="submit"]').click()
+        
+        # Aviso en consola
+        print("#####     SESIÓN CERRADA     #####", flush=True)
+
+        # Cerrar procesos de selenium
+        self.driver.quit()
+
+    def main_process(self):
+        self.init_driver()
+        self.login()
+        self.take_attendance()
+        self.logout()
+        # self.update_data()
+    
     def set_class(self):
         self.get_data()
         time = datetime.now()
@@ -95,14 +200,17 @@ class AttendanceBot():
 
         if time.time() < first_class.time():
             self.schedule =  datetime.strptime(self.data['classes']['1']['schedule'], '%H:%M')
+            self.current_class = "1"
         else:
             if time.hour <= last_class.hour:
                 for i in self.data['classes']:
                     if time.hour == datetime.strptime(self.data['classes'][i]['schedule'], '%H:%M').hour:
                         self.schedule =  datetime.strptime(self.data['classes'][i]['schedule'], '%H:%M')
+                        self.current_class = str(i)
                         break
             else:
                 self.schedule = None
+                self.current_class = None
 
         if self.schedule is not None and time.time() >= first_class.time():
             if time.minute >= datetime.strptime(self.data['delay'], '%M').minute:
@@ -110,12 +218,14 @@ class AttendanceBot():
                     self.schedule = self.schedule.replace(minute=time.minute+2)
                 else:
                     #### Tomar asistencia ####
-                    self.take_attendance()
+                    self.main_process()
                     ##########################
                     if self.schedule.hour + 1 < 20:
                         self.schedule += timedelta(hours=1)
+                        self.current_class = str(int(self.current_class) + 1)
                     else:
                         self.schedule = None
+                        self.current_class = None
 
     def start_bot(self):
         self.set_class()
@@ -131,7 +241,7 @@ class AttendanceBot():
             self.schedule = self.fix_datetime(self.schedule)
             ################################################
             
-            self.timer = Timer(self.schedule, self.take_attendance)
+            self.timer = Timer(self.schedule, self.main_process)
             self.timer.start()
 
     def stop_bot(self):
@@ -144,8 +254,10 @@ class AttendanceBot():
 if __name__ == "__main__":
     try: 
         bot = AttendanceBot()
-        bot.start_bot()
-        input()
-        bot.stop_bot()
+        # bot.start_bot()
+        # input()
+        # bot.stop_bot()
+        bot.set_class()
+        bot.main_process()
     except KeyboardInterrupt as e:
         bot.stop_bot()
