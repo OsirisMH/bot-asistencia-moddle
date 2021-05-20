@@ -45,9 +45,9 @@ class Timer(Thread):
                                                         second=0,
                                                         microsecond=0)
 
-                    #####################################
-                    self.schedule = datetime.now()
-                    self.schedule += timedelta(minutes=1)
+                    ##################################### TESTING
+                    # self.schedule = datetime.now()
+                    # self.schedule += timedelta(minutes=1)
                     #####################################
 
                     print('PRÓXIMA EJECUCIÓN PROGRAMADA A LAS → {0}'.format(self.schedule.time()), flush=True)
@@ -200,8 +200,8 @@ class AttendanceBot():
         self.get_data()
         time = datetime.now()
         
-        # ##########################################
-        time = datetime.strptime('14:57', '%H:%M')
+        # ########################################## TESTING
+        # time = datetime.strptime('14:57', '%H:%M')
         # ##########################################
         
         first_class = datetime.strptime(self.data['classes']['1']['schedule'], '%H:%M')
@@ -245,10 +245,10 @@ class AttendanceBot():
             print("### BOT INICIADO ###")
             self.schedule = self.fix_datetime(self.schedule)
 
-            ################################################
-            self.schedule = datetime.now()
-            self.schedule += timedelta(minutes=1)
-            self.schedule = self.fix_datetime(self.schedule)
+            ################################################ TESTING
+            # self.schedule = datetime.now()
+            # self.schedule += timedelta(minutes=1)
+            # self.schedule = self.fix_datetime(self.schedule)
             ################################################
             
             self.timer = Timer(self.schedule, self.main_process)
