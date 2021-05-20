@@ -1,17 +1,19 @@
 import sys, os
-import balloontip
 import encriptador
 import json
 import undetected_chromedriver as uc
+from pushbullet import Pushbullet
 from selenium import webdriver
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
-from time import sleep, strptime
+from time import sleep, strptime, time
 from datetime import date, datetime, timedelta
 from threading import Thread
+
+API_KEY_PATH = os.path.abspath("../assets/api_key.txt")
 
 class Timer(Thread):
     def __init__(self, schedule, function):
@@ -43,6 +45,11 @@ class Timer(Thread):
                                                         second=0,
                                                         microsecond=0)
 
+                    #####################################
+                    self.schedule = datetime.now()
+                    self.schedule += timedelta(minutes=1)
+                    #####################################
+
                     print('PRÓXIMA EJECUCIÓN PROGRAMADA A LAS → {0}'.format(self.schedule.time()), flush=True)
 
             sleep(1)
@@ -57,6 +64,7 @@ class AttendanceBot():
         self.schedule = None
         self.timer = None
         self.driver = None
+        self.chrome_options = None
 
     def get_data(self):
         data_file = open(self.json_path, "r", encoding='utf-8')
@@ -90,12 +98,13 @@ class AttendanceBot():
 
     def init_driver(self):
         # Configuración del webdriver [Chrome]
-        chrome_options = webdriver.ChromeOptions()
-        chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
-        chrome_options.headless = True
-        self.driver = uc.Chrome(options = chrome_options)
+        self.chrome_options = webdriver.ChromeOptions()
+        self.chrome_options.add_experimental_option('excludeSwitches', ['enable-logging'])
+        # self.chrome_options.headless = True
 
     def login(self):
+        self.driver = uc.Chrome(options = self.chrome_options)
+
         # Redireccionar a la página principal de Aula Virtual
         self.driver.get(self.data['homepage_url'])
 
@@ -165,7 +174,9 @@ class AttendanceBot():
             message = "No se ha podido tomar asistencia..."
             print("{}".format(message), flush=True)
 
-        balloontip.balloon_tip("### AVISO ###", message)
+        self.current_class = str(int(self.current_class) + 1)
+        print(self.current_class)
+        notification(API_KEY_PATH, message)
 
     def logout(self):
         # Redirección al log out
@@ -181,19 +192,17 @@ class AttendanceBot():
         self.driver.quit()
 
     def main_process(self):
-        self.init_driver()
         self.login()
         self.take_attendance()
         self.logout()
-        # self.update_data()
     
     def set_class(self):
         self.get_data()
         time = datetime.now()
         
-        ##########################################
+        # ##########################################
         time = datetime.strptime('14:57', '%H:%M')
-        ##########################################
+        # ##########################################
         
         first_class = datetime.strptime(self.data['classes']['1']['schedule'], '%H:%M')
         last_class = datetime.strptime(self.data['classes']['5']['schedule'], '%H:%M')
@@ -228,12 +237,13 @@ class AttendanceBot():
                         self.current_class = None
 
     def start_bot(self):
+        self.init_driver()
         self.set_class()
         if self.schedule is None:
             print("SCHEDULE NONE")
         else:
             print("### BOT INICIADO ###")
-            # self.schedule = self.fix_datetime(self.schedule)
+            self.schedule = self.fix_datetime(self.schedule)
 
             ################################################
             self.schedule = datetime.now()
@@ -250,14 +260,18 @@ class AttendanceBot():
         else:
             print("### EL BOT ESTÁ APAGADO ###")
 
+def notification(api_key, msg):
+    with open(api_key, mode='r') as f:
+        key = f.read()
+
+    pb = Pushbullet(key)
+    push = pb.push_note('BOT ASISTENCIA', msg)
 
 if __name__ == "__main__":
     try: 
         bot = AttendanceBot()
-        # bot.start_bot()
-        # input()
-        # bot.stop_bot()
-        bot.set_class()
-        bot.main_process()
+        bot.start_bot()
+        input()
+        bot.stop_bot()
     except KeyboardInterrupt as e:
         bot.stop_bot()
